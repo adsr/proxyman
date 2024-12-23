@@ -1,0 +1,20 @@
+{
+  "name": "ProxyMan",
+  "description": "No-nonsense proxy manager and switcher",
+  "version": "1.0.0",
+  "homepage_url": "https://github.com/adsr/proxyman",
+  "manifest_version": 3,
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": "icon-16.png"
+  },
+  "options_page": "options.html",
+  "permissions": [
+    "proxy",
+    "storage"
+  ],
+  "background": {
+    "service_worker": "worker.js",
+    "type": "module"
+  }
+}

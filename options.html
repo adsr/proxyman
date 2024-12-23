@@ -1,0 +1,29 @@
+<!doctype html>
+<html>
+<head>
+<link rel="stylesheet" href="style.css">
+<head>
+<body id="options">
+<h1><a href="https://github.com/adsr/proxyman">ProxyMan</a></h1>
+<hr/>
+<p>Proxies</p>
+<div id="proxies"></div>
+<hr/>
+<p>Auto rules</p>
+<div id="rules"></div>
+<hr/>
+<p>Regex Test</p>
+<table>
+<tr><td>regex</td><td><input type="text" id="test-regex" size="100"></td></tr>
+<tr><td>subject</td><td><input type="text" id="test-subject" size="100"></td></tr>
+</table>
+<hr/>
+<p>Notes</p>
+<ul class="help">
+<li><code>shexp</code> patterns are <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Proxy_servers_and_tunneling/Proxy_Auto-Configuration_PAC_file#shexpmatch">wildcard patterns</a>.</li>
+<li><code>regex</code> patterns are <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_expressions">JavaScript regular expressions</a>.</li>
+<li>When matching against https <code>url</code>s, note that the path and query components are stripped as noted <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Proxy_servers_and_tunneling/Proxy_Auto-Configuration_PAC_file#url">here</a>.</li>
+</ul>
+<script src="options.js" type="module"></script>
+</body>
+</html>
