@@ -149,10 +149,10 @@ class OptionsPage {
     let html = '';
     html += '<table>';
     html += '<tr>';
-    html += '<td>Name</td>';
-    html += '<td>Badge</td>';
-    html += '<td>Scheme</td>';
-    html += '<td>Host</td>';
+    html += '<th>Name</th>';
+    html += '<th>Badge</th>';
+    html += '<th>Scheme</th>';
+    html += '<th>Host</th>';
     html += '<td>Port</td>';
     html += '<td></td>';
     html += '</tr>';
@@ -180,9 +180,9 @@ class OptionsPage {
     let html = '';
     html += '<table>';
     html += '<tr>';
-    html += '<td>Pattern</td>';
-    html += '<td>Pattern Type</td>';
-    html += '<td>Match against</td>';
+    html += '<th>Pattern</th>';
+    html += '<th>Pattern Type</th>';
+    html += '<th>Match against</th>';
     html += '<td>Proxy to use</td>';
     html += '<td></td>';
     html += '</tr>';

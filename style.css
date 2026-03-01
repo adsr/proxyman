@@ -71,3 +71,10 @@ tr.invalid {
 #test-subject.no-match {
   background-color: salmon;
 }
+
+th {
+    text-align: left;
+    font-weight: normal;
+    border-right: 1px solid #000;
+    padding-right: 3px;
+}
