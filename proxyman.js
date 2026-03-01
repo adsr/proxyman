@@ -239,8 +239,7 @@ export class ProxyMan {
         const autoDefault = ${autoDefaultJson};
         const proxyMap = ${proxyMapJson};
         const consts = ${constsJson};
-        // const log = (s) => console.log(s);
-        const log = (s) => alert(s);
+        const log = (s) => console.log(s);
         let i = 0;
         for (const rule of autoRules) {
           let subject = null;
