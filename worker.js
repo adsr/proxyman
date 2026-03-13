@@ -1,6 +1,6 @@
 import { ProxyMan, ProxyMode } from './proxyman.js';
 
-(async () => {
+const init = async () => {
   const setBadge = () => {
     const actualMode = proxyman.proxySettings.mode;
     const fixedProxy = proxyman.getEnabledFixedProxy();
@@ -31,11 +31,15 @@ import { ProxyMan, ProxyMode } from './proxyman.js';
     if (color) chrome.action.setBadgeTextColor({ color: color });
   };
 
-  const proxyman = new ProxyMan();
   await proxyman.loadOptions();
   await proxyman.loadProxySettings();
   proxyman.listenForOptions(setBadge);
   proxyman.listenForProxySettings(setBadge);
 
   setBadge();
-})();
+};
+
+const proxyman = new ProxyMan();
+
+chrome.runtime.onStartup.addListener(init);
+chrome.runtime.onInstalled.addListener(init);
