@@ -66,6 +66,9 @@ export class ProxyServer {
     return this.host.length >= 1
         && (!this.port || (this.port >= 1 && this.port <= 65535));
   }
+  toProxyLine() {
+    return `${this.scheme.toUpperCase()} ${this.host}:${this.getPort()}`;
+  }
 }
 
 export class ProxyConfig {
@@ -137,7 +140,7 @@ export class Options {
     self.proxies = toArray(o.proxies).map(p => {
       return ProxyConfig.fromObject(p);
     });
-    self.autoDefault = toEnum(ProxyMode, o.autoDefault);
+    self.autoDefault = toString(o.autoDefault);
     self.autoRules = toArray(o.autoRules).map(r => {
       return Rule.fromObject(r);
     });
@@ -145,6 +148,21 @@ export class Options {
   }
   toObject() {
     return JSON.parse(JSON.stringify(this))
+  }
+  getAutoProxyMap() {
+    const m = {};
+    for (const proxy of this.proxies) {
+      m[proxy.name] = proxy.server.toProxyLine();
+    }
+    return m;
+  }
+  getAutoDefaultRule() {
+    for (const proxy of this.proxies) {
+      if (proxy.name === this.autoDefault) {
+        return proxy.server.toProxyLine();
+      }
+    }
+    return 'DIRECT';
   }
   setMode(mode, fixedServerName) {
     this.mode = toEnum(ProxyMode, mode);
@@ -221,14 +239,8 @@ export class ProxyMan {
   }
   generatePacScript() {
     const autoRulesJson = JSON.stringify(this.options.autoRules);
-    const autoDefaultJson = JSON.stringify(this.options.autoDefault);
-    const proxyMapJson = JSON.stringify((() => {
-      const m = {};
-      for (const proxy of this.options.proxies) {
-        m[proxy.name] = `${proxy.server.scheme.toUpperCase()} ${proxy.server.host}:${proxy.server.getPort()}`;
-      }
-      return m;
-    })());
+    const autoDefaultJson = JSON.stringify(this.options.getAutoDefaultRule());
+    const proxyMapJson = JSON.stringify(this.options.getAutoProxyMap());
     const constsJson = JSON.stringify(Object.assign(
       {}, ProxyMode, RuleType, RuleSubject
     ));
