@@ -30,9 +30,9 @@ class OptionsPage {
           case 'proxy-delete':      self.deleteProxy(index);                         break;
           case 'proxy-revert':      self.revertProxies();                            break;
           case 'proxy-save':        await self.saveProxies();                        break;
-          case 'proxy-name':        self.proxies[index].name = el.value;             break;
-          case 'proxy-badge-text':  self.proxies[index].badgeText = el.value;        break;
-          case 'proxy-host':        self.proxies[index].server.host = el.value;     break;
+          case 'proxy-name':        self.proxies[index].setName(el.value);           break;
+          case 'proxy-badge-text':  self.proxies[index].setBadgeText(el.value);      break;
+          case 'proxy-host':        self.proxies[index].server.setHost(el.value);    break;
           case 'proxy-port':        self.proxies[index].server.setPort(el.value);    break;
           case 'proxy-scheme':      self.proxies[index].server.setScheme(el.value);  break;
           case 'rule-add':          self.addRule();                                  break;
@@ -41,10 +41,10 @@ class OptionsPage {
           case 'rule-down':         self.moveRuleDown(index);                        break;
           case 'rule-revert':       self.revertRules();                              break;
           case 'rule-save':         await self.saveRules();                          break;
-          case 'rule-pattern':      self.autoRules[index].pattern = el.value;        break;
+          case 'rule-pattern':      self.autoRules[index].setPattern(el.value);      break;
           case 'rule-type':         self.autoRules[index].setType(el.value);         break;
           case 'rule-subject':      self.autoRules[index].setSubject(el.value);      break;
-          case 'rule-proxy':        self.autoRules[index].proxyName = el.value;      break;
+          case 'rule-proxy':        self.autoRules[index].setProxyName(el.value);    break;
           case 'rule-auto-default': self.autoDefault = el.value;                     break;
         }
         document.querySelector('button.rule-revert').disabled = !self.areRulesModified();
@@ -210,7 +210,7 @@ class OptionsPage {
       html += `<button class="rule-delete" data-index=${index}>Delete</button></td>`;
       html += '</tr>';
     }
-    html += '<tr class="auto-default">';
+    html += '<tr>';
     html += '<td colspan=3>Default</td>';
     html += '<td colspan=2><select class="rule-auto-default">';
     html += `<option ${this.autoDefault === 'direct' ? 'selected' : ''}>direct</option>`;

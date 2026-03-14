@@ -34,7 +34,7 @@ export class ProxyServer {
   static fromObject(o) {
     const self = new this();
     self.setScheme(o.scheme);
-    self.host = toString(o.host);
+    self.setHost(o.host);
     self.setPort(o.port);
     return self;
   }
@@ -55,6 +55,9 @@ export class ProxyServer {
     return this.scheme === other.scheme
         && this.host === other.host
         && this.getPort() === other.getPort();
+  }
+  setHost(v) {
+    this.host = toString(v);
   }
   setPort(v) {
     this.port = parseInt(toString(v), 10);
@@ -79,10 +82,16 @@ export class ProxyConfig {
   }
   static fromObject(o) {
     const self = new this();
-    self.name = toString(o.name);
+    self.setName(o.name);
     self.badgeText = toString(o.badgeText);
     self.server = ProxyServer.fromObject(o.server);
     return self;
+  }
+  setName(v) {
+    this.name = toString(v);
+  }
+  setBadgeText(v) {
+    this.badgeText = toString(v);
   }
   isValid() {
     return this.name.length >= 1
@@ -105,8 +114,8 @@ export class Rule {
     const self = new this();
     self.setType(o.type);
     self.setSubject(o.subject);
-    self.pattern = toString(o.pattern);
-    self.proxyName = toString(o.proxyName);
+    self.setPattern(o.pattern);
+    self.setProxyName(o.proxyName);
     return self;
   }
   setType(v) {
@@ -114,6 +123,12 @@ export class Rule {
   }
   setSubject(v) {
     this.subject = toEnum(RuleSubject, v);
+  }
+  setPattern(v) {
+    this.pattern = toString(v);
+  }
+  setProxyName(v) {
+    this.proxyName = toString(v);
   }
   isValid(proxyman) {
     return this.pattern.length >= 1
