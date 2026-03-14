@@ -1,10 +1,19 @@
 export const ProxyMode = Object.freeze({
   DIRECT: 'direct',
-  AUTO_DETECT: 'auto_detect',
-  PAC_SCRIPT: 'pac_script',
   FIXED_SERVERS: 'fixed_servers',
+  PAC_SCRIPT: 'pac_script',
+  AUTO_DETECT: 'auto_detect',
   SYSTEM: 'system',
   UNMANAGED: 'unmanaged',
+});
+
+export const ProxyModeLabels = Object.freeze({
+  [ProxyMode.DIRECT]: 'Direct',
+  [ProxyMode.FIXED_SERVERS]: 'Fixed',
+  [ProxyMode.PAC_SCRIPT]: 'Auto (PAC)',
+  [ProxyMode.AUTO_DETECT]: 'Auto-detect (WPAD)',
+  [ProxyMode.SYSTEM]: 'System',
+  [ProxyMode.UNMANAGED]: 'Unmanaged',
 });
 
 export const ProxyScheme = Object.freeze({
@@ -77,21 +86,18 @@ export class ProxyServer {
 export class ProxyConfig {
   constructor() {
     this.name = '';
-    this.badgeText = '';
+    this.badgeConf = new BadgeConfig('');
     this.server = new ProxyServer();
   }
   static fromObject(o) {
     const self = new this();
     self.setName(o.name);
-    self.badgeText = toString(o.badgeText);
+    self.badgeConf = BadgeConfig.fromObject(o.badgeConf);
     self.server = ProxyServer.fromObject(o.server);
     return self;
   }
   setName(v) {
     this.name = toString(v);
-  }
-  setBadgeText(v) {
-    this.badgeText = toString(v);
   }
   isValid() {
     return this.name.length >= 1
@@ -140,13 +146,55 @@ export class Rule {
   }
 }
 
+export class BadgeConfig {
+  constructor(s) {
+    this.setText(s);
+    this.setFg('#ffffff');
+    this.setBg('#000000');
+  }
+  static fromObject(o) {
+    const self = new this();
+    if (o) {
+      self.setText(o.text);
+      self.setFg(o.fg);
+      self.setBg(o.bg);
+    }
+    return self;
+  }
+  setText(s) {
+    this.text = toString(s);
+  }
+  setFg(c) {
+    this.fg = toColor(c);
+  }
+  setBg(c) {
+    this.bg = toColor(c);
+  }
+  toObject() {
+    return Object.assign({}, this);
+  }
+  clone() {
+    return this.constructor.fromObject(this);
+  }
+}
+
 export class Options {
   constructor() {
-    this.mode = ProxyMode.DIRECT;
+    this.mode = ProxyMode.UNMANAGED;
     this.fixedProxyName = null;
     this.proxies = [];
     this.autoDefault = ProxyMode.DIRECT;
     this.autoRules = [];
+    const badgeDefaults = {
+      [ProxyMode.DIRECT]: '',
+      [ProxyMode.PAC_SCRIPT]: 'auto',
+      [ProxyMode.AUTO_DETECT]: 'auto',
+      [ProxyMode.SYSTEM]: 'sys',
+      [ProxyMode.UNMANAGED]: '!',
+    };
+    this.badgeConfs = Object.fromEntries(Object.keys(badgeDefaults).map(
+      (badgeType) => [badgeType, new BadgeConfig(badgeDefaults[badgeType])]
+    ));
   }
   static fromObject(o) {
     const self = new this();
@@ -159,10 +207,15 @@ export class Options {
     self.autoRules = toArray(o.autoRules).map(r => {
       return Rule.fromObject(r);
     });
+    for (const [badgeType, badgeConf] of Object.entries(self.badgeConfs)) {
+      if (o.badgeConfs?.[badgeType]) {
+        self.badgeConfs[badgeType] = BadgeConfig.fromObject(o.badgeConfs[badgeType]);
+      }
+    }
     return self;
   }
   toObject() {
-    return JSON.parse(JSON.stringify(this))
+    return JSON.parse(JSON.stringify(this));
   }
   getAutoProxyMap() {
     const m = {};
@@ -184,6 +237,9 @@ export class Options {
     this.fixedProxyName = this.mode === ProxyMode.FIXED_SERVERS
       ? toString(fixedServerName)
       : null;
+  }
+  setAutoDefault(v) {
+    this.autoDefault = toString(v);
   }
 }
 
@@ -221,7 +277,9 @@ export class ProxyMan {
     });
   }
   async saveOptions() {
-    await chrome.storage.sync.set({ options: this.options.toObject() });
+    const saveObj = this.options.toObject();
+    await chrome.storage.sync.set({ options: saveObj });
+    console.log('Saved options', saveObj);
   }
   async configureProxy() {
     const settings = {};
@@ -349,6 +407,9 @@ export class ProxyMan {
     }
     return null;
   }
+  isUnmanagedOrOutOfSync(actualMode) {
+    return actualMode !== this.options.mode || this.isProxyForeign();
+  }
 }
 
 const toEnum = (ec, value) => {
@@ -371,4 +432,10 @@ const toStringOrNull = (v) => {
 const toArray = (v) => {
   if (Array.isArray(v)) return v;
   return [];
+};
+
+const toColor = (v) => {
+  const s = toString(v);
+  if (/^#[0-9a-f]{6}$/i.test(s)) return s;
+  return '';
 };

@@ -2,8 +2,8 @@ import {
   ProxyConfig,
   ProxyMan,
   ProxyMode,
+  ProxyModeLabels,
   ProxyScheme,
-  ProxyServer,
   Rule,
   RuleSubject,
   RuleType,
@@ -15,23 +15,27 @@ class OptionsPage {
     this.proxies = [];
     this.autoRules = [];
     this.autoDefault = null;
+    this.badgeConfs = {};
   }
   render() {
     const self = this;
     this.renderProxies();
     this.renderRules();
+    this.renderBadgeConfs();
     document.querySelectorAll('button, input, select').forEach((el, i) => {
       el.addEventListener(el.tagName === 'BUTTON' ? 'click' : 'input', async (e) => {
         self.resetValidation();
         const el = e.target;
-        const index = parseInt(el.dataset.index || 0, 10);
+        const index = el.dataset.index;
         switch (el.className) {
           case 'proxy-add':         self.addProxy();                                 break;
           case 'proxy-delete':      self.deleteProxy(index);                         break;
           case 'proxy-revert':      self.revertProxies();                            break;
           case 'proxy-save':        await self.saveProxies();                        break;
           case 'proxy-name':        self.proxies[index].setName(el.value);           break;
-          case 'proxy-badge-text':  self.proxies[index].setBadgeText(el.value);      break;
+          case 'proxy-badge-text':  self.proxies[index].badgeConf.setText(el.value); break;
+          case 'proxy-badge-fg':    self.proxies[index].badgeConf.setFg(el.value);   break;
+          case 'proxy-badge-bg':    self.proxies[index].badgeConf.setBg(el.value);   break;
           case 'proxy-host':        self.proxies[index].server.setHost(el.value);    break;
           case 'proxy-port':        self.proxies[index].server.setPort(el.value);    break;
           case 'proxy-scheme':      self.proxies[index].server.setScheme(el.value);  break;
@@ -46,9 +50,15 @@ class OptionsPage {
           case 'rule-subject':      self.autoRules[index].setSubject(el.value);      break;
           case 'rule-proxy':        self.autoRules[index].setProxyName(el.value);    break;
           case 'rule-auto-default': self.autoDefault = el.value;                     break;
+          case 'badge-conf-revert': self.revertBadgeConfs();                         break;
+          case 'badge-conf-save':   await self.saveBadgeConfs();                     break;
+          case 'badge-conf-text':   self.badgeConfs[index].setText(el.value);        break;
+          case 'badge-conf-fg':     self.badgeConfs[index].setFg(el.value);          break;
+          case 'badge-conf-bg':     self.badgeConfs[index].setBg(el.value);          break;
         }
         document.querySelector('button.rule-revert').disabled = !self.areRulesModified();
         document.querySelector('button.proxy-revert').disabled = !self.areProxiesModified();
+        document.querySelector('button.badge-conf-revert').disabled = !self.areBadgeConfsModified();
       });
     });
   }
@@ -58,7 +68,16 @@ class OptionsPage {
   }
   revertRules(skipRender) {
     this.autoRules = proxyman.options.autoRules.map((r) => r.clone());
-    this.autoDefault = proxyman.options.autoDefault || 'direct';
+    this.autoDefault = proxyman.options.autoDefault || ProxyMode.DIRECT;
+    if (!skipRender) this.render();
+  }
+  revertBadgeConfs(skipRender) {
+    const badgeConfs = proxyman.options.badgeConfs;
+    this.badgeConfs = Object.fromEntries(
+      Object.keys(badgeConfs).map(
+        (badgeType) => [badgeType, badgeConfs[badgeType].clone()]
+      )
+    );
     if (!skipRender) this.render();
   }
   areRulesModified() {
@@ -67,6 +86,9 @@ class OptionsPage {
   }
   areProxiesModified() {
     return JSON.stringify(this.proxies) !== JSON.stringify(proxyman.options.proxies);
+  }
+  areBadgeConfsModified() {
+    return JSON.stringify(this.badgeConfs) !== JSON.stringify(proxyman.options.badgeConfs);
   }
   addProxy() {
     this.proxies.push(new ProxyConfig());
@@ -125,6 +147,15 @@ class OptionsPage {
     await proxyman.configureProxy();
     this.render();
   }
+  async saveBadgeConfs() {
+    proxyman.options.badgeConfs = Object.fromEntries(
+      Object.keys(proxyman.options.badgeConfs).map(
+        (badgeType) => [badgeType, this.badgeConfs[badgeType].clone()]
+      )
+    );
+    await proxyman.saveOptions();
+    this.render();
+  }
   deleteProxy(index) {
     this.proxies.splice(index, 1);
     this.render();
@@ -151,6 +182,8 @@ class OptionsPage {
     html += '<tr>';
     html += '<th>Name</th>';
     html += '<th>Badge</th>';
+    html += '<th>Color</th>';
+    html += '<th>Background</th>';
     html += '<th>Scheme</th>';
     html += '<th>Host</th>';
     html += '<td>Port</td>';
@@ -159,7 +192,9 @@ class OptionsPage {
     for (const [index, proxy] of this.proxies.entries()) {
       html += `<tr class="proxies" data-index=${index}>`;
       html += `<td><input class="proxy-name" type="text" value="${proxy.name}" data-index=${index}></td>`;
-      html += `<td><input class="proxy-badge-text" type="text" value="${proxy.badgeText}" data-index=${index}></td>`;
+      html += `<td><input class="proxy-badge-text" type="text" value="${proxy.badgeConf.text}" data-index=${index}></td>`;
+      html += `<td><input class="proxy-badge-fg" type="color" value="${proxy.badgeConf.fg}" data-index=${index}></td>`;
+      html += `<td><input class="proxy-badge-bg" type="color" value="${proxy.badgeConf.bg}" data-index=${index}></td>`;
       html += `<td><select class="proxy-scheme" data-index=${index}>`;
       for (const scheme of Object.values(ProxyScheme)) {
         html += `<option ${proxy.server.scheme === scheme ? 'selected' : ''}>${scheme}</option>`;
@@ -226,6 +261,30 @@ class OptionsPage {
     html += '<button class="rule-save">Save</button>';
     document.querySelector('#rules').innerHTML = html;
   }
+  renderBadgeConfs() {
+    let html = '';
+    html += '<table>';
+    html += '<tr>';
+    html += '<th>Type</th>';
+    html += '<th>Default badge</th>';
+    html += '<th>Default color</th>';
+    html += '<td>Default background</td>';
+    html += '<td></td>';
+    html += '</tr>';
+    for (const [badgeType, badgeConf] of Object.entries(this.badgeConfs)) {
+      html += `<tr>`;
+      html += `<td>${ProxyModeLabels[badgeType]}</td>`;
+      html += `<td><input class="badge-conf-text" type="text" value="${badgeConf.text}" data-index="${badgeType}">`;
+      html += `<td><input class="badge-conf-fg" type="color" value="${badgeConf.fg}" data-index="${badgeType}">`;
+      html += `<td><input class="badge-conf-bg" type="color" value="${badgeConf.bg}" data-index="${badgeType}">`;
+    }
+    html += '</tr>';
+    html += '</table>';
+
+    html += '<button class="badge-conf-revert" disabled>Revert</button>';
+    html += '<button class="badge-conf-save">Save</button>';
+    document.querySelector('#badge-conf').innerHTML = html;
+  }
   hookRegexTest() {
     const regex = document.querySelector('#test-regex');
     const subject = document.querySelector('#test-subject');
@@ -253,5 +312,6 @@ proxyman.listenForOptions(null);
 const page = new OptionsPage();
 page.revertProxies(true);
 page.revertRules(true);
+page.revertBadgeConfs(true);
 page.render();
 page.hookRegexTest();
