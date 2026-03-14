@@ -26,26 +26,26 @@ class OptionsPage {
         const el = e.target;
         const index = parseInt(el.dataset.index || 0, 10);
         switch (el.className) {
-          case 'proxy-add':    self.addProxy();           break;
-          case 'rule-add':     self.addRule();            break;
-          case 'proxy-revert': self.revertProxies();      break;
-          case 'rule-revert':  self.revertRules();        break;
-          case 'proxy-save':   await self.saveProxies();  break;
-          case 'rule-save':    await self.saveRules();    break;
-          case 'proxy-delete': self.deleteProxy(index);   break;
-          case 'rule-delete':  self.deleteRule(index);    break;
-          case 'rule-up':      self.moveRuleUp(index);    break;
-          case 'rule-down':    self.moveRuleDown(index);  break;
-          case 'name':    self.proxies[index].name = el.value;            break;
-          case 'badge':   self.proxies[index].badgeText = el.value;       break;
-          case 'host':    self.proxies[index].server.host = el.value;     break;
-          case 'port':    self.proxies[index].server.setPort(el.value);   break;
-          case 'scheme':  self.proxies[index].server.setScheme(el.value); break;
-          case 'pattern': self.autoRules[index].pattern = el.value;       break;
-          case 'type':    self.autoRules[index].setType(el.value);        break;
-          case 'subject': self.autoRules[index].setSubject(el.value);     break;
-          case 'proxy':   self.autoRules[index].proxyName = el.value;     break;
-          case 'auto-default': self.autoDefault = el.value; break;
+          case 'proxy-add':         self.addProxy();                                 break;
+          case 'proxy-delete':      self.deleteProxy(index);                         break;
+          case 'proxy-revert':      self.revertProxies();                            break;
+          case 'proxy-save':        await self.saveProxies();                        break;
+          case 'proxy-name':        self.proxies[index].name = el.value;             break;
+          case 'proxy-badge-text':  self.proxies[index].badgeText = el.value;        break;
+          case 'proxy-host':        self.proxies[index].server.host = el.value;     break;
+          case 'proxy-port':        self.proxies[index].server.setPort(el.value);    break;
+          case 'proxy-scheme':      self.proxies[index].server.setScheme(el.value);  break;
+          case 'rule-add':          self.addRule();                                  break;
+          case 'rule-delete':       self.deleteRule(index);                          break;
+          case 'rule-up':           self.moveRuleUp(index);                          break;
+          case 'rule-down':         self.moveRuleDown(index);                        break;
+          case 'rule-revert':       self.revertRules();                              break;
+          case 'rule-save':         await self.saveRules();                          break;
+          case 'rule-pattern':      self.autoRules[index].pattern = el.value;        break;
+          case 'rule-type':         self.autoRules[index].setType(el.value);         break;
+          case 'rule-subject':      self.autoRules[index].setSubject(el.value);      break;
+          case 'rule-proxy':        self.autoRules[index].proxyName = el.value;      break;
+          case 'rule-auto-default': self.autoDefault = el.value;                     break;
         }
         document.querySelector('button.rule-revert').disabled = !self.areRulesModified();
         document.querySelector('button.proxy-revert').disabled = !self.areProxiesModified();
@@ -158,15 +158,15 @@ class OptionsPage {
     html += '</tr>';
     for (const [index, proxy] of this.proxies.entries()) {
       html += `<tr class="proxies" data-index=${index}>`;
-      html += `<td><input class="name" type="text" value="${proxy.name}" data-index=${index}></td>`;
-      html += `<td><input class="badge" type="text" value="${proxy.badgeText}" data-index=${index}></td>`;
-      html += `<td><select class="scheme" data-index=${index}>`;
+      html += `<td><input class="proxy-name" type="text" value="${proxy.name}" data-index=${index}></td>`;
+      html += `<td><input class="proxy-badge-text" type="text" value="${proxy.badgeText}" data-index=${index}></td>`;
+      html += `<td><select class="proxy-scheme" data-index=${index}>`;
       for (const scheme of Object.values(ProxyScheme)) {
         html += `<option ${proxy.server.scheme === scheme ? 'selected' : ''}>${scheme}</option>`;
       }
       html += '</select></td>';
-      html += `<td><input class="host" type="text" value="${proxy.server.host}" data-index=${index}></td>`;
-      html += `<td><input class="port" type="text" value="${proxy.server.port || ''}" data-index=${index}></td>`;
+      html += `<td><input class="proxy-host" type="text" value="${proxy.server.host}" data-index=${index}></td>`;
+      html += `<td><input class="proxy-port" type="text" value="${proxy.server.port || ''}" data-index=${index}></td>`;
       html += `<td><button class="proxy-delete" data-index=${index}>Delete</button></td>`;
       html += '</tr>';
     }
@@ -188,18 +188,18 @@ class OptionsPage {
     html += '</tr>';
     for (const [index, rule] of this.autoRules.entries()) {
       html += `<tr class="autoRules" data-index=${index}>`;
-      html += `<td><input class="pattern" type="text" value="${rule.pattern}" data-index=${index}></td>`;
-      html += `<td><select class="type" data-index=${index}>`;
+      html += `<td><input class="rule-pattern" type="text" value="${rule.pattern}" data-index=${index}></td>`;
+      html += `<td><select class="rule-type" data-index=${index}>`;
       for (const type of Object.values(RuleType)) {
         html += `<option ${rule.type === type ? 'selected' : ''}>${type}</option>`;
       }
       html += '</select></td>';
-      html += `<td><select class="subject" data-index=${index}>`;
+      html += `<td><select class="rule-subject" data-index=${index}>`;
       for (const subject of Object.values(RuleSubject)) {
         html += `<option ${rule.subject === subject ? 'selected' : ''}>${subject}</option>`;
       }
       html += '</select></td>';
-      html += `<td><select class="proxy" data-index=${index}>`;
+      html += `<td><select class="rule-proxy" data-index=${index}>`;
       html += `<option ${rule.proxyName === 'direct' ? 'selected' : ''}>direct</option>`;
       for (const proxy of proxyman.options.proxies) {
         html += `<option ${rule.proxyName === proxy.name ? 'selected' : ''}>${proxy.name}</option>`;
@@ -212,7 +212,7 @@ class OptionsPage {
     }
     html += '<tr class="auto-default">';
     html += '<td colspan=3>Default</td>';
-    html += '<td colspan=2><select class="auto-default">';
+    html += '<td colspan=2><select class="rule-auto-default">';
     html += `<option ${this.autoDefault === 'direct' ? 'selected' : ''}>direct</option>`;
     for (const proxy of proxyman.options.proxies) {
       html += `<option ${this.autoDefault === proxy.name ? 'selected' : ''}>${proxy.name}</option>`;
