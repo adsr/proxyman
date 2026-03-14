@@ -21,7 +21,7 @@ class OptionsPage {
     this.renderProxies();
     this.renderRules();
     document.querySelectorAll('button, input, select').forEach((el, i) => {
-      el.addEventListener(el.tagName === 'BUTTON' ? 'click' : 'input', (e) => {
+      el.addEventListener(el.tagName === 'BUTTON' ? 'click' : 'input', async (e) => {
         self.resetValidation();
         const el = e.target;
         const index = parseInt(el.dataset.index || 0, 10);
@@ -30,8 +30,8 @@ class OptionsPage {
           case 'rule-add':     self.addRule();            break;
           case 'proxy-revert': self.revertProxies();      break;
           case 'rule-revert':  self.revertRules();        break;
-          case 'proxy-save':   self.saveProxies();        break;
-          case 'rule-save':    self.saveRules();          break;
+          case 'proxy-save':   await self.saveProxies();  break;
+          case 'rule-save':    await self.saveRules();    break;
           case 'proxy-delete': self.deleteProxy(index);   break;
           case 'rule-delete':  self.deleteRule(index);    break;
           case 'rule-up':      self.moveRuleUp(index);    break;
@@ -110,19 +110,19 @@ class OptionsPage {
     }
     return valid;
   }
-  saveProxies() {
+  async saveProxies() {
     if (!this.validateProxies()) return;
     proxyman.options.proxies = this.proxies.map((p) => p.clone());
-    proxyman.saveOptions();
-    proxyman.configureProxy();
+    await proxyman.saveOptions();
+    await proxyman.configureProxy();
     this.render();
   }
-  saveRules() {
+  async saveRules() {
     if (!this.validateRules()) return;
     proxyman.options.autoRules = this.autoRules.map((r) => r.clone());
     proxyman.options.autoDefault = this.autoDefault;
-    proxyman.saveOptions();
-    proxyman.configureProxy();
+    await proxyman.saveOptions();
+    await proxyman.configureProxy();
     this.render();
   }
   deleteProxy(index) {

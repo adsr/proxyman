@@ -60,7 +60,7 @@ const render = () => {
       );
 
       // Save options and configure proxy settings
-      proxyman.saveOptions();
+      await proxyman.saveOptions();
       await proxyman.configureProxy();
 
       // Re-render

@@ -205,8 +205,8 @@ export class ProxyMan {
       if (cb) cb();
     });
   }
-  saveOptions() {
-    chrome.storage.sync.set({ options: this.options.toObject() });
+  async saveOptions() {
+    await chrome.storage.sync.set({ options: this.options.toObject() });
   }
   async configureProxy() {
     const settings = {};
@@ -229,11 +229,11 @@ export class ProxyMan {
         settings.rules = { singleProxy: proxy.server.toObject() };
         break;
       case ProxyMode.UNMANAGED:
-        chrome.proxy.settings.clear({ scope: 'regular' });
+        await chrome.proxy.settings.clear({ scope: 'regular' });
         console.log('Cleared proxy settings');
         return;
     }
-    chrome.proxy.settings.set({ value: settings, scope: 'regular' });
+    await chrome.proxy.settings.set({ value: settings, scope: 'regular' });
     console.log('Set proxy settings', settings);
     await this.loadProxySettings();
   }
